@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Your cart — Group of Tushar Restaurant{% endblock %}
+{% block content %}
+{% if lines %}
+<div class="cart-layout wrap">
+    <div>
+        <h1 style="font-size: 1.9rem;">Your cart</h1>
+        {% for line in lines %}
+        <div class="cart-line">
+            <span class="dish-emoji">{{ line.item.emoji }}</span>
+            <div>
+                <div class="dish-name" style="font-size:1rem;">{{ line.item.name }}</div>
+                <div style="font-size:0.82rem; color: var(--cream-faint);">₹{{ '%.0f' % line.item.price }} each</div>
+            </div>
+            <form method="post" action="{{ url_for('cart_update', item_id=line.item.id) }}" class="qty-form">
+                <input type="number" name="qty" value="{{ line.qty }}" min="0" max="50">
+                <button type="submit" class="btn btn-sm btn-ghost">Update</button>
+            </form>
+            <span class="price">₹{{ '%.0f' % line.line_total }}</span>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="summary-card">
+        <h3 style="font-size:1.1rem;">Order summary</h3>
+        <div class="summary-row"><span>Subtotal</span><span>₹{{ '%.2f' % subtotal }}</span></div>
+        <div class="summary-row"><span>Tax</span><span>₹{{ '%.2f' % tax }}</span></div>
+        <div class="summary-row total"><span>Total</span><span>₹{{ '%.2f' % total }}</span></div>
+        <a href="{{ url_for('checkout') }}" class="btn btn-primary btn-block">Checkout</a>
+        <a href="{{ url_for('menu') }}" class="btn btn-ghost btn-block" style="margin-top:10px;">Add more items</a>
+    </div>
+</div>
+{% else %}
+<div class="empty-state wrap">
+    <div class="big-emoji">🛒</div>
+    <h2>Your cart is empty</h2>
+    <p>Nothing here yet — the menu has a few things worth fixing that.</p>
+    <a href="{{ url_for('menu') }}" class="btn btn-primary">Browse the menu</a>
+</div>
+{% endif %}
+{% endblock %}

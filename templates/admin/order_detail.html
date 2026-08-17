@@ -1,0 +1,94 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Order #{{ order.id }} — Group of Tushar Restaurant{% endblock %}
+{% block admin_content %}
+<div class="section-head">
+    <div><h1 style="font-size: 1.8rem;margin-bottom:0;">Order #{{ order.id }}</h1><p>{{ order.customer_name }} &middot; {{ order.customer_email }} &middot; placed {{ order.created_at }}</p></div>
+    <button type="button" class="btn btn-primary no-print" onclick="window.print()">🖨 Print Order</button>
+</div>
+
+<div class="stat-grid" style="grid-template-columns: repeat(4, 1fr);">
+    <div class="stat-card">
+        <div class="stat-label">Current status</div>
+        <div style="margin-top:10px;"><span class="badge badge-{{ order.status }}">{{ STATUS_LABELS[order.status] }}</span></div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Fulfilment</div>
+        <div class="stat-value" style="font-size:1.2rem;">{{ 'Delivery' if order.order_type == 'delivery' else 'Pickup' }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Total</div>
+        <div class="stat-value">₹{{ '%.2f' % order.total }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Payment</div>
+        <div style="margin-top:10px;"><span class="badge {{ 'badge-delivered' if order.payment_status == 'received' else 'badge-pending' }}">{{ PAYMENT_LABELS[order.payment_status] }}</span></div>
+    </div>
+</div>
+
+<div style="display:grid; grid-template-columns: 1fr 320px; gap: 24px; align-items:start;">
+    <div class="summary-card">
+        <h3 style="font-size:1.05rem;">Items</h3>
+        {% for item in items %}
+        <div class="mini-line"><span>{{ item.quantity }}× {{ item.item_name }}</span><span>₹{{ '%.0f' % (item.unit_price * item.quantity) }}</span></div>
+        {% endfor %}
+        <div class="summary-row" style="margin-top:14px;"><span>Subtotal</span><span>₹{{ '%.2f' % order.subtotal }}</span></div>
+        <div class="summary-row"><span>Tax</span><span>₹{{ '%.2f' % order.tax }}</span></div>
+        <div class="summary-row total"><span>Total</span><span>₹{{ '%.2f' % order.total }}</span></div>
+
+        {% if order.order_type == 'delivery' %}
+        <h3 style="font-size:1.05rem; margin-top:20px;">Delivery details</h3>
+        <p style="color:var(--cream);">{{ order.address }}</p>
+        {% if order.phone %}<p>📞 {{ order.phone }}</p>{% endif %}
+        {% endif %}
+        {% if order.notes %}
+        <h3 style="font-size:1.05rem; margin-top:20px;">Kitchen notes</h3>
+        <p style="color:var(--cream);">{{ order.notes }}</p>
+        {% endif %}
+    </div>
+
+    <div class="summary-card">
+        <h3 style="font-size:1.05rem;">Payment confirmation</h3>
+        {% if order.payment_status == 'received' %}
+            <div class="payment-notice"><strong>✅ Payment Received</strong><span>Order is confirmed and can move to the kitchen.</span></div>
+        {% else %}
+            <div class="payment-notice"><strong>⏳ Payment Pending</strong><span>Check your PhonePe / UPI account first, then confirm below.</span></div>
+            <form method="post" action="{{ url_for('admin_payment_received', order_id=order.id) }}" onsubmit="return confirm('Have you received the payment for this order?');">
+                <button type="submit" class="btn btn-primary btn-block">✅ Payment Received / Done</button>
+            </form>
+        {% endif %}
+
+        <h3 style="font-size:1.05rem; margin-top:22px;">Update status</h3>
+        <form method="post" action="{{ url_for('admin_order_status', order_id=order.id) }}">
+            <div class="field">
+                <select name="status">
+                    {% for s in statuses %}
+                    <option value="{{ s }}" {{ 'selected' if s == order.status }}>{{ STATUS_LABELS[s] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Update status</button>
+        </form>
+        {% if order.payment_status == 'received' and status_wa_links %}
+            <h3 style="font-size:1.05rem; margin-top:22px;">WhatsApp customer messages</h3>
+            <a href="{{ status_wa_links.confirmed }}" target="_blank" rel="noopener" class="btn btn-ghost btn-block" style="margin-top:8px;">💬 Confirmed Order Message</a>
+            <a href="{{ status_wa_links.preparing }}" target="_blank" rel="noopener" class="btn btn-ghost btn-block" style="margin-top:8px;">👨‍🍳 In Kitchen Message</a>
+            <a href="{{ status_wa_links.out_for_delivery }}" target="_blank" rel="noopener" class="btn btn-ghost btn-block" style="margin-top:8px;">🛵 Out for Delivery Message</a>
+            <a href="{{ status_wa_links.delivered }}" target="_blank" rel="noopener" class="btn btn-ghost btn-block" style="margin-top:8px;">✅ Delivered Message</a>
+            {% if customer_wa_link %}
+            <a href="{{ customer_wa_link }}" target="_blank" rel="noopener" class="btn btn-primary btn-block" style="margin-top:12px;">💬 Send WhatsApp Confirmation</a>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<a href="{{ url_for('admin_orders') }}" class="btn btn-ghost" style="margin-top:24px;">← Back to orders</a>
+{% endblock %}
+
+<script>
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('print') === '1') {
+    window.addEventListener('load', function(){ setTimeout(function(){ window.print(); }, 450); });
+  }
+})();
+</script>

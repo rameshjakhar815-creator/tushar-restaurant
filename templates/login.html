@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Log in — Group of Tushar Restaurant{% endblock %}
+{% block content %}
+<div class="form-page">
+    <div class="form-card">
+        <h1 style="font-size: 1.7rem; text-align:center;">Welcome back</h1>
+        <form method="post">
+            <div class="field">
+                <label for="email">Email</label>
+                <input id="email" name="email" type="email" required autofocus>
+            </div>
+            <div class="field">
+                <label for="password">Password</label>
+                <input id="password" name="password" type="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Log in</button>
+        </form>
+        <p class="form-foot">New here? <a href="{{ url_for('register') }}" style="color: var(--gold);">Create an account</a></p>
+    </div>
+</div>
+{% endblock %}

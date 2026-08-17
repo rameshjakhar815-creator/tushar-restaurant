@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Menu — Group of Tushar Restaurant{% endblock %}
+{% block content %}
+<div class="wrap" style="padding-top: 40px;">
+    <h1 style="font-size: 2.2rem;">The menu</h1>
+    <p><strong>{{ "Veg Menu" if menu_filter == "veg" else "Non-Veg Menu" if menu_filter == "nonveg" else "All Menu" }}</strong> — choose your food type below.</p>
+    <p>Every dish made to order. <span class="veg-dot" style="vertical-align:-2px;"></span> veg &nbsp;
+       <span class="veg-dot nonveg" style="vertical-align:-2px;"></span> non-veg</p>
+</div>
+
+<div class="wrap menu-choice-bar">
+    <a class="btn {{ 'btn-primary' if menu_filter == 'all' else 'btn-ghost' }}" href="{{ url_for('menu', type='all') }}">🍽 All Menu</a>
+    <a class="btn {{ 'btn-primary' if menu_filter == 'veg' else 'btn-ghost' }}" href="{{ url_for('menu', type='veg') }}">🟢 Veg Menu</a>
+    <a class="btn {{ 'btn-primary' if menu_filter == 'nonveg' else 'btn-ghost' }}" href="{{ url_for('menu', type='nonveg') }}">🔴 Non-Veg Menu</a>
+</div>
+
+<nav class="menu-nav wrap">
+    {% for cat in categories %}
+        {% if items_by_cat[cat.id] %}<a href="#cat-{{ cat.id }}">{{ cat.name }}</a>{% endif %}
+    {% endfor %}
+</nav>
+
+<div class="wrap">
+    {% for cat in categories %}
+    <div class="menu-category" id="cat-{{ cat.id }}">
+        <h2>{{ cat.name }}</h2>
+        <div class="dish-grid">
+            {% for item in items_by_cat[cat.id] %}
+            <div class="dish-card">
+                <div class="dish-top">
+                    {% if item.image_path %}<img class="dish-image" src="{{ url_for('static', filename=item.image_path) }}" alt="{{ item.name }}">{% else %}<span class="dish-emoji">{{ item.emoji }}</span>{% endif %}
+                    <span class="veg-dot {{ '' if item.is_veg else 'nonveg' }}" title="{{ 'Veg' if item.is_veg else 'Non-veg' }}"></span>
+                </div>
+                <h3 class="dish-name">{{ item.name }}</h3>
+                <p class="dish-desc">{{ item.description }}</p>
+                <div class="dish-bottom">
+                    <span class="price">₹{{ '%.0f' % item.price }}</span>
+                    <form method="post" action="{{ url_for('cart_add', item_id=item.id) }}">
+                        <button type="submit" class="btn btn-sm btn-primary">Add</button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <p>Nothing available in this category right now.</p>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Table Booking #{{ booking.id }} — Group of Tushar Restaurant{% endblock %}
+{% block content %}
+<div class="wrap" style="padding:48px 24px;max-width:760px;">
+  <div class="summary-card">
+    <span class="hero-eyebrow">Table Reservation</span>
+    <h1>Booking #{{ booking.id }}</h1>
+    <p>Your table booking is saved successfully. Keep this booking number for reference.</p>
+    <div class="order-summary" style="margin-top:24px;">
+      <p><strong>Status:</strong> <span class="badge badge-{{ 'confirmed' if booking.status == 'confirmed' else ('cancelled' if booking.status == 'cancelled' else 'pending') }}">{{ booking.status|capitalize }}</span></p>
+      <p><strong>Name:</strong> {{ booking.customer_name }}</p>
+      <p><strong>Phone:</strong> {{ booking.phone }}</p>
+      <p><strong>Date:</strong> {{ booking.booking_date }}</p>
+      <p><strong>Time:</strong> {{ booking.booking_time }}</p>
+      <p><strong>Guests:</strong> {{ booking.guests }}</p>
+      {% if booking.notes %}<p><strong>Special request:</strong> {{ booking.notes }}</p>{% endif %}
+      <p><strong>Booked on:</strong> {{ booking.created_at }}</p>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:24px;">
+      <a href="{{ url_for('my_orders') }}" class="btn btn-primary">📋 My Orders</a>
+      <a href="{{ url_for('table_booking') }}" class="btn btn-ghost">Book Another Table</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

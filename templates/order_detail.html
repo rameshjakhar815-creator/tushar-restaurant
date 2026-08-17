@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}Order #{{ order.id }} — {{ site_settings.restaurant_name }}<script>
+(function () {
+    const page = document.getElementById('customer-order-page');
+    if (!page) return;
+    const orderId = page.dataset.orderId;
+    let lastPayment = '{{ order.payment_status }}';
+    let lastStatus = '{{ order.status }}';
+
+    function updatePayment(data) {
+        const title = document.getElementById('payment-status-title');
+        const text = document.getElementById('payment-status-text');
+        const card = document.querySelector('.payment-card');
+        if (data.payment_status === 'received') {
+            if (title) title.textContent = '✅ Payment Successful';
+            if (text) text.textContent = 'Payment has been received successfully. Your order is confirmed and is being prepared.';
+            if (card) card.classList.add('payment-success-live');
+            lastPayment = 'received';
+        } else {
+            if (title) title.textContent = '⏳ Waiting for payment confirmation';
+            if (text) text.textContent = 'After you pay by UPI / PhonePe, the restaurant will verify the payment and confirm your order.';
+            lastPayment = 'pending';
+        }
+    }
+
+    function updateTimeline(status) {
+        const steps = ['pending','confirmed','preparing','out_for_delivery','delivered'];
+        const index = steps.indexOf(status);
+        document.querySelectorAll('.tandoor-step').forEach(function(step, i) {
+            step.classList.remove('done','current');
+            if (i < index) step.classList.add('done');
+            else if (i === index) step.classList.add('current');
+        });
+        lastStatus = status;
+    }
+
+    async function checkOrder() {
+        try {
+            const r = await fetch('/api/orders/' + encodeURIComponent(orderId) + '/status?_=' + Date.now(), {
+                cache:'no-store', credentials:'same-origin'
+            });
+            if (!r.ok) return;
+            const data = await r.json();
+            updatePayment(data);
+            updateTimeline(data.status);
+
+            const statusBadge = document.querySelector('[data-live-order-status]');
+            if (statusBadge) statusBadge.textContent = data.status_label || data.status;
+
+            const paymentBadge = document.querySelector('[data-live-payment-status]');
+            if (paymentBadge) paymentBadge.textContent = data.payment_label || data.payment_status;
+
+            if (data.payment_status === 'received' && !document.getElementById('live-payment-toast')) {
+                const toast = document.createElement('div');
+                toast.id = 'live-payment-toast';
+                toast.className = 'flash success';
+                toast.textContent = '✅ Payment Successful — your order is confirmed.';
+                page.prepend(toast);
+            }
+        } catch (e) {}
+    }
+
+    setInterval(checkOrder, 2000);
+    checkOrder();
+})();
+</script>
+{% endblock %}
+{% block content %}
+<div id="customer-order-page" class="wrap" style="padding:48px 24px;max-width:800px;" data-order-id="{{ order.id }}">
+    <span class="hero-eyebrow">Order Tracking</span>
+    <h1 style="font-size:1.9rem;">Order #{{ order.id }}</h1>
+    <p>Placed {{ order.created_at }} · Delivery · UPI / PhonePe only</p>
+    <div class="live-order-summary" style="margin:12px 0;"><strong>Order Status:</strong> <span data-live-order-status>{{ STATUS_LABELS[order.status] }}</span> &nbsp; | &nbsp; <strong>Payment:</strong> <span data-live-payment-status>{{ "Payment Received" if order.payment_status == "received" else "Payment Pending" }}</span></div>
+
+    {% if order.status == 'cancelled' %}
+        <div class="tandoor-cancelled">✕ This order was cancelled</div>
+    {% else %}
+    <div class="tandoor-timeline">
+        {% for s in status_sequence %}
+        <div class="tandoor-step {{ 'done' if loop.index0 < step_index else ('current' if loop.index0 == step_index else '') }}">
+            <div class="tandoor-dot">
+                {% if s == 'pending' %}📝{% elif s == 'confirmed' %}✔{% elif s == 'preparing' %}🔥{% elif s == 'out_for_delivery' %}🛵{% else %}🍽️{% endif %}
+            </div>
+            <div class="tandoor-label">{{ STATUS_LABELS[s] }}</div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if order.payment_status != 'received' %}
+    <div class="payment-card">
+        <div><strong>⏳ Waiting for payment confirmation</strong><span>After you pay by UPI / PhonePe, the restaurant will verify the payment and confirm your order.</span></div>
+    </div>
+    {% else %}
+    <div class="payment-card">
+        <div><strong id="payment-status-title">✅ Payment Successful</strong><span id="payment-status-text">Payment has been received successfully. Your order is confirmed and is being prepared.</span></div>
+    </div>
+    {% endif %}
+
+    {% if payment_link and order.payment_status != 'received' %}
+    <div class="payment-card">
+        <div>
+            <strong>Payment pending / required</strong>
+            <span>Pay ₹{{ '%.2f' % order.total }} using UPI / PhonePe.</span>
+            <small>UPI ID: {{ settings.upi_id }}</small>
+        </div>
+        <a class="btn btn-primary" href="{{ payment_link }}">Pay with UPI</a>
+    </div>
+    {% else %}
+    <div class="payment-card">
+        <div><strong>UPI payment</strong><span>Admin has not configured the UPI ID yet.</span></div>
+    </div>
+    {% endif %}
+
+    <div class="summary-card" style="margin-top:20px;">
+        <h3 style="font-size:1.05rem;">Items</h3>
+        {% for item in items %}
+        <div class="mini-line"><span>{{ item.quantity }}× {{ item.item_name }}</span><span>₹{{ '%.0f' % (item.unit_price * item.quantity) }}</span></div>
+        {% endfor %}
+        <div class="summary-row" style="margin-top:14px;"><span>Subtotal</span><span>₹{{ '%.2f' % order.subtotal }}</span></div>
+        <div class="summary-row"><span>Tax</span><span>₹{{ '%.2f' % order.tax }}</span></div>
+        <div class="summary-row total"><span>Total</span><span>₹{{ '%.2f' % order.total }}</span></div>
+    </div>
+
+    {% if order.address %}
+    <div class="summary-card" style="margin-top:16px;">
+        <h3 style="font-size:1.05rem;">Delivery address</h3>
+        <p style="color:var(--cream);">{{ order.address }}</p>
+        {% if order.phone %}<p>📞 <a href="tel:{{ order.phone }}" style="color:inherit;">{{ order.phone }}</a></p>{% endif %}
+        <p class="delivery-limit">📍 Delivery limit: {{ DELIVERY_RADIUS_KM }} km</p>
+    </div>
+    {% endif %}
+
+    {% if wa_link %}
+    <div class="whatsapp-card">
+        <div><strong>💬 WhatsApp order support</strong><span>Tap below to send the order number to the restaurant.</span></div>
+        <a class="btn btn-ghost" href="{{ wa_link }}" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+    {% endif %}
+
+    <a href="{{ url_for('my_orders') }}" class="btn btn-ghost" style="margin-top:24px;">← Back to my orders</a>
+</div>
+<script>
+(function () {
+    const page = document.getElementById('customer-order-page');
+    if (!page) return;
+    const orderId = page.dataset.orderId;
+    let lastPayment = '{{ order.payment_status }}';
+    let lastStatus = '{{ order.status }}';
+    async function checkOrder() {
+        try {
+            const r = await fetch('/api/orders/' + encodeURIComponent(orderId) + '/status', {cache:'no-store', credentials:'same-origin'});
+            if (!r.ok) return;
+            const data = await r.json();
+            if (data.payment_status === 'received' && lastPayment !== 'received') {
+                const title = document.getElementById('payment-status-title');
+                const text = document.getElementById('payment-status-text');
+                const toast = document.getElementById('live-payment-toast');
+                if (title) title.textContent = '✅ Payment Successful';
+                if (text) text.textContent = 'Payment has been received successfully. Your order is confirmed and is being prepared.';
+                if (toast) toast.hidden = false;
+                lastPayment = 'received';
+            }
+            if (data.status !== lastStatus || data.payment_status !== lastPayment) {
+                window.location.reload();
+            }
+            lastStatus = data.status;
+        } catch (e) {}
+    }
+    setInterval(checkOrder, 3000);
+})();
+</script>
+{% endblock %}

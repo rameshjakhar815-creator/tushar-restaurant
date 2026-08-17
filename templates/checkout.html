@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Checkout — {{ site_settings.restaurant_name }}{% endblock %}
+{% block content %}
+<div class="checkout-layout wrap">
+    <div>
+        <div class="section-head">
+            <div>
+                <span class="hero-eyebrow">Secure Checkout</span>
+                <h1 style="font-size:1.9rem;">Delivery & Payment</h1>
+                <p>Delivery is available within {{ DELIVERY_RADIUS_KM }} km of {{ site_settings.location }}.</p>
+            </div>
+        </div>
+
+        <form method="post" class="form-card">
+            <div class="payment-notice">
+                {% if site_settings.upi_qr_path %}
+                    <div style="margin:10px 0;text-align:center;">
+                        <img src="{{ url_for('static', filename=site_settings.upi_qr_path) }}" alt="UPI QR Code" style="width:190px;max-width:70vw;border-radius:14px;border:1px solid rgba(255,255,255,.18);">
+                    </div>
+                {% endif %}
+                <strong>📱 UPI / PhonePe{% if site_settings.cod_enabled == '1' %} + 💵 Cash on Delivery{% endif %}</strong>
+                <span>{% if site_settings.cod_enabled == '1' %}Choose your preferred payment method below.{% else %}Cash on Delivery is currently not available.{% endif %}</span>
+            </div>
+
+            <div class="field">
+                <label for="address">Delivery address *</label>
+                <textarea id="address" name="address" rows="3" required placeholder="House / street / area / city">{{ user.address or '' }}</textarea>
+                <div class="field-hint">Please order only if your address is within {{ DELIVERY_RADIUS_KM }} km.</div>
+            </div>
+
+            <div class="field">
+                <label for="phone">Phone number *</label>
+                <input id="phone" name="phone" type="tel" value="{{ user.phone or '' }}" required placeholder="For delivery updates">
+            </div>
+
+            <div class="field">
+                <label>Payment method</label>
+                <label class="radio-option checked">
+                    <input type="radio" name="payment_method" value="upi" checked style="margin-right:8px;">
+                    <strong>UPI / PhonePe</strong>
+                    <div class="field-hint">
+                        {% if site_settings.upi_id %}
+                            Pay directly to <b>{{ site_settings.upi_id }}</b> after placing the order.
+                        {% else %}
+                            UPI ID will be shown here once the admin configures it.
+                        {% endif %}
+                    </div>
+                </label>
+                {% if site_settings.cod_enabled == '1' %}
+                <label class="radio-option" style="margin-top:10px;">
+                    <input type="radio" name="payment_method" value="cod" style="margin-right:8px;">
+                    <strong>💵 Cash on Delivery</strong>
+                    <div class="field-hint">Pay cash to the delivery staff when your order arrives.</div>
+                </label>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                <label for="notes">Notes for the kitchen (optional)</label>
+                <textarea id="notes" name="notes" rows="2" placeholder="Spice level, allergies, etc."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Place Order — ₹{{ '%.2f' % total }}</button>
+        </form>
+    </div>
+
+    <div class="summary-card">
+        <h3 style="font-size:1.1rem;">Order summary</h3>
+        {% for line in lines %}
+        <div class="mini-line"><span>{{ line.qty }}× {{ line.item.name }}</span><span>₹{{ '%.0f' % line.line_total }}</span></div>
+        {% endfor %}
+        <div class="summary-row" style="margin-top:14px;"><span>Subtotal</span><span>₹{{ '%.2f' % subtotal }}</span></div>
+        <div class="summary-row"><span>Tax</span><span>₹{{ '%.2f' % tax }}</span></div>
+        <div class="summary-row total"><span>Total</span><span>₹{{ '%.2f' % total }}</span></div>
+        <div class="cod-off">{% if site_settings.cod_enabled == "1" %}💵 Cash on Delivery available{% else %}🚫 No Cash on Delivery{% endif %}</div>
+    </div>
+</div>
+{% endblock %}

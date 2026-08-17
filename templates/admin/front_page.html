@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Front Page Manager — Admin{% endblock %}
+{% block content %}
+<div class="admin-main front-manager">
+    <div class="section-head">
+        <div>
+            <span class="hero-eyebrow">Admin Control</span>
+            <h1>🖼 Front Page Manager</h1>
+            <p>Change the main website photo anytime. You can also schedule a future front page.</p>
+        </div>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn-ghost">← Dashboard</a>
+    </div>
+
+    <div class="front-manager-grid">
+        <div class="form-card">
+            <h2>Add New Front</h2>
+            <form method="post" enctype="multipart/form-data">
+                <div class="field">
+                    <label>Front Photo *</label>
+                    <input type="file" name="image" accept="image/png,image/jpeg,image/webp,image/gif" required>
+                    <div class="field-hint">Your supplied Group of Tushar artwork is already installed as the first live front.</div>
+                </div>
+                <div class="field">
+                    <label>Title</label>
+                    <input type="text" name="title" value="Group of Tushar Restaurant">
+                </div>
+                <div class="field">
+                    <label>Subtitle</label>
+                    <input type="text" name="subtitle" value="Near Mahindra SEZ, Jaipur • Delivery within 4 km">
+                </div>
+                <div class="field">
+                    <label>Start date & time (optional)</label>
+                    <input type="datetime-local" name="start_at">
+                    <div class="field-hint">Useful for Independence Day, festivals, offers, etc.</div>
+                </div>
+                <div class="field">
+                    <label>End date & time (optional)</label>
+                    <input type="datetime-local" name="end_at">
+                </div>
+                <div class="field-check">
+                    <input type="checkbox" name="activate" id="activate" checked>
+                    <label for="activate">Make this the live front page now</label>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top:18px;">Save Front Page</button>
+            </form>
+        </div>
+
+        <div>
+            <h2>Saved Front Pages</h2>
+            <div class="front-list">
+                {% for slide in slides %}
+                <div class="front-card {% if slide.is_active %}live{% endif %}">
+                    <img src="{{ url_for('static', filename=slide.image_path) }}" alt="{{ slide.title }}">
+                    <div class="front-card-body">
+                        <strong>{{ slide.title or 'Group of Tushar Restaurant' }}</strong>
+                        <span>{{ slide.subtitle }}</span>
+                        {% if slide.start_at %}<small>Starts: {{ slide.start_at }}</small>{% endif %}
+                        {% if slide.end_at %}<small>Ends: {{ slide.end_at }}</small>{% endif %}
+                        <div class="front-actions">
+                            {% if slide.is_active %}
+                                <span class="badge badge-confirmed">LIVE</span>
+                            {% else %}
+                                <form method="post" action="{{ url_for('admin_front_page_activate', slide_id=slide.id) }}">
+                                    <button class="btn btn-sm btn-primary" type="submit">Make Live</button>
+                                </form>
+                            {% endif %}
+                            <form method="post" action="{{ url_for('admin_front_page_delete', slide_id=slide.id) }}" onsubmit="return confirm('Delete this front image?')">
+                                <button class="btn btn-sm btn-ghost" type="submit">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="empty-state">No front images saved yet.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

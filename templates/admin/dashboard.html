@@ -1,0 +1,55 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Admin Dashboard — Group of Tushar Restaurant{% endblock %}
+{% block admin_content %}
+<div id="admin-dashboard-root" data-latest-order-id="{{ recent_orders[0].id if recent_orders else 0 }}" data-latest-booking-id="{{ latest_booking_id or 0 }}">
+<h1 style="font-size: 1.8rem;">Dashboard</h1>
+<p>An overview of today at Group of Tushar Restaurant.</p>
+<div class="admin-quick-actions">
+    <a class="btn btn-primary" href="{{ url_for('admin_orders') }}">📋 Manage Orders</a>
+    <a class="btn btn-ghost" href="{{ url_for('admin_menu') }}">🍽️ Manage Menu</a>
+    <a class="btn btn-ghost" href="{{ url_for('admin_table_bookings') }}">🍽️ Table Bookings ({{ table_bookings_count }})</a>
+    <a class="btn btn-ghost" href="{{ url_for('admin_settings') }}">⚙ Settings</a>
+</div>
+
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-label">Orders today</div>
+        <div class="stat-value">{{ orders_today_count }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Revenue today</div>
+        <div class="stat-value">₹{{ '%.0f' % orders_today_revenue }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Active orders</div>
+        <div class="stat-value">{{ pending_count }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Menu items</div>
+        <div class="stat-value">{{ total_items }}</div>
+    </div>
+</div>
+
+<h2 style="font-size: 1.3rem;">Recent orders</h2>
+{% if recent_orders %}
+<table class="data-table">
+    <thead><tr><th>Order</th><th>Customer</th><th>Placed</th><th>Total</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+        {% for o in recent_orders %}
+        <tr>
+            <td>#{{ o.id }}</td>
+            <td>{{ o.customer_name }}</td>
+            <td>{{ o.created_at }}</td>
+            <td>₹{{ '%.2f' % o.total }}</td>
+            <td><span class="badge badge-{{ o.status }}">{{ STATUS_LABELS[o.status] }}</span></td>
+            <td><a href="{{ url_for('admin_order_detail', order_id=o.id) }}" class="btn btn-sm btn-ghost">View</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No orders yet.</p>
+{% endif %}
+</div>
+{% endblock %}

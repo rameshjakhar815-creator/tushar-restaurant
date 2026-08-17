@@ -1,0 +1,20 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Table Bookings — Group of Tushar Restaurant{% endblock %}
+{% block admin_content %}
+<div class="section-head"><div><h1>🍽️ Table Bookings</h1><p>Manage 2-person, 3-person, 5-person and other table requests.</p></div></div>
+<div class="summary-card">
+<table class="data-table">
+<thead><tr><th>ID</th><th>Customer</th><th>Phone</th><th>Date</th><th>Time</th><th>Guests</th><th>Notes / Request</th><th>Created</th><th>Status</th><th>Action</th></tr></thead>
+<tbody>
+{% for b in bookings %}
+<tr>
+<td>#{{ b.id }}</td><td>{{ b.customer_name }}</td><td><a href="tel:{{ b.phone }}">{{ b.phone }}</a></td>
+<td>{{ b.booking_date }}</td><td>{{ b.booking_time }}</td><td>{{ b.guests }}</td><td>{{ b.notes or "—" }}</td><td>{{ b.created_at }}</td><td>{{ b.status|title }}</td>
+<td><form method="post" action="{{ url_for('admin_table_booking_status', booking_id=b.id) }}">
+<select name="status"><option value="pending" {{ 'selected' if b.status=='pending' }}>Pending</option><option value="confirmed" {{ 'selected' if b.status=='confirmed' }}>Confirmed</option><option value="cancelled" {{ 'selected' if b.status=='cancelled' }}>Cancelled</option><option value="completed" {{ 'selected' if b.status=='completed' }}>Completed</option></select>
+<button class="btn btn-sm btn-primary">Save</button></form></td>
+</tr>
+{% else %}<tr><td colspan="10">No table bookings yet.</td></tr>{% endfor %}
+</tbody></table>
+</div>
+{% endblock %}

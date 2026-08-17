@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}My Orders & Bookings — Group of Tushar Restaurant{% endblock %}
+{% block content %}
+<div class="wrap" style="padding:48px 24px;">
+    <h1 style="font-size:1.9rem;">📋 My Orders & Table Bookings</h1>
+    <p>Yahan aapke food orders aur table reservations dono ka complete history milega.</p>
+
+    <section style="margin-top:30px;">
+      <h2>🍽️ Table Booking History</h2>
+      {% if table_bookings %}
+      <div class="data-table-wrap">
+      <table class="data-table">
+        <thead><tr><th>Booking</th><th>Date</th><th>Time</th><th>Guests</th><th>Status</th><th>Booked On</th><th></th></tr></thead>
+        <tbody>
+        {% for b in table_bookings %}
+          <tr>
+            <td>#{{ b.id }}</td>
+            <td>{{ b.booking_date }}</td>
+            <td>{{ b.booking_time }}</td>
+            <td>{{ b.guests }}</td>
+            <td><span class="badge badge-{{ 'confirmed' if b.status == 'confirmed' else ('cancelled' if b.status == 'cancelled' else 'pending') }}">{{ b.status|capitalize }}</span></td>
+            <td>{{ b.created_at }}</td>
+            <td><a href="{{ url_for('table_booking_detail', booking_id=b.id) }}" class="btn btn-sm btn-ghost">View Booking</a></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      </div>
+      {% else %}
+        <div class="empty-state"><div class="big-emoji">🍽️</div><h3>No table bookings yet</h3><p>Your table reservations will appear here after you book.</p><a href="{{ url_for('table_booking') }}" class="btn btn-primary">Book a Table</a></div>
+      {% endif %}
+    </section>
+
+    <section style="margin-top:42px;">
+      <h2>🧾 Food Order History</h2>
+      {% if orders %}
+      <table class="data-table">
+        <thead><tr><th>Order</th><th>Placed</th><th>Type</th><th>Total</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+        {% for o in orders %}
+          <tr>
+            <td>#{{ o.id }}</td><td>{{ o.created_at }}</td>
+            <td>{{ 'Delivery' if o.order_type == 'delivery' else 'Pickup' }}</td>
+            <td>₹{{ '%.2f' % o.total }}</td>
+            <td><span class="badge badge-{{ o.status }}">{{ STATUS_LABELS[o.status] }}</span></td>
+            <td><a href="{{ url_for('order_detail', order_id=o.id) }}" class="btn btn-sm btn-ghost">Track Order</a></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <div class="empty-state"><div class="big-emoji">📋</div><h3>No food orders yet</h3><p>Your food order history will show up here.</p><a href="{{ url_for('menu') }}" class="btn btn-primary">Browse the menu</a></div>
+      {% endif %}
+    </section>
+</div>
+{% endblock %}

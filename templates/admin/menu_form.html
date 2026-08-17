@@ -1,0 +1,50 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}{{ 'Edit' if item else 'Add' }} menu item — Group of Tushar Restaurant{% endblock %}
+{% block admin_content %}
+<h1 style="font-size: 1.8rem;">{{ 'Edit' if item else 'Add' }} menu item</h1>
+
+<form method="post" enctype="multipart/form-data" class="form-card" style="max-width: 520px;">
+    <div class="field">
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" required value="{{ item.name if item else '' }}">
+    </div>
+    <div class="field">
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="3">{{ item.description if item else '' }}</textarea>
+    </div>
+    <div class="field">
+        <label for="category_id">Category</label>
+        <select id="category_id" name="category_id" required>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}" {{ 'selected' if item and item.category_id == cat.id }}>{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="field">
+        <label for="price">Price (₹)</label>
+        <input id="price" name="price" type="number" step="1" min="1" required value="{{ item.price if item else '' }}">
+    </div>
+    <div class="field">
+        <label for="image">Food photo</label>
+        {% if item and item.image_path %}<img src="{{ url_for('static', filename=item.image_path) }}" alt="{{ item.name }}" style="width:180px;height:120px;object-fit:cover;border-radius:12px;margin-bottom:10px;display:block;">{% endif %}
+        <input id="image" name="image" type="file" accept="image/png,image/jpeg,image/webp,image/gif">
+        <small>JPG, PNG, WEBP or GIF. Uploading a new photo replaces the old one.</small>
+    </div>
+    <div class="field">
+        <label for="emoji">Icon (fallback)</label>
+        <input id="emoji" name="emoji" type="text" value="{{ item.emoji if item else '🍽️' }}" maxlength="4">
+    </div>
+    <div class="field field-check">
+        <input id="is_veg" name="is_veg" type="checkbox" {{ 'checked' if not item or item.is_veg }}>
+        <label for="is_veg" style="margin:0;">Vegetarian</label>
+    </div>
+    {% if item %}
+    <div class="field field-check">
+        <input id="is_available" name="is_available" type="checkbox" {{ 'checked' if item.is_available }}>
+        <label for="is_available" style="margin:0;">Visible on live menu</label>
+    </div>
+    {% endif %}
+    <button type="submit" class="btn btn-primary btn-block">{{ 'Save changes' if item else 'Add item' }}</button>
+    <a href="{{ url_for('admin_menu') }}" class="btn btn-ghost btn-block" style="margin-top:10px;">Cancel</a>
+</form>
+{% endblock %}

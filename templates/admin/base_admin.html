@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="admin-shell">
+    <aside class="admin-sidebar">
+        <a href="{{ url_for('admin_dashboard') }}" class="{{ 'active' if request.endpoint == 'admin_dashboard' }}">Dashboard</a>
+        <a href="{{ url_for('admin_orders') }}" class="{{ 'active' if request.endpoint in ['admin_orders','admin_order_detail'] }}">Orders</a>
+        <a href="{{ url_for('admin_table_bookings') }}" class="{{ 'active' if request.endpoint in ['admin_table_bookings','admin_table_booking_status'] }}">🍽️ Table Bookings</a>
+        <a href="{{ url_for('admin_menu') }}" class="{{ 'active' if request.endpoint in ['admin_menu','admin_menu_add','admin_menu_edit'] }}">Menu</a>
+        <a href="{{ url_for('admin_categories') }}" class="{{ 'active' if request.endpoint == 'admin_categories' }}">🗂 Categories</a>
+        <a href="{{ url_for('admin_front_page') }}" class="{{ 'active' if request.endpoint in ['admin_front_page','admin_front_page_activate','admin_front_page_delete'] }}">🖼 Front Page</a>
+        <a href="{{ url_for('admin_settings') }}" class="{{ 'active' if request.endpoint == 'admin_settings' }}">⚙ Settings</a>
+        <a href="{{ url_for('admin_change_password') }}" class="{{ 'active' if request.endpoint == 'admin_change_password' }}">🔐 Change Password</a>
+        <a href="{{ url_for('home') }}" style="margin-top:20px; color: var(--cream-faint);">← Back to site</a>
+    </aside>
+    <div class="admin-main">
+        <div class="admin-alarm-bar" aria-live="polite">
+            <span id="admin-alarm-status">🔊 Order alarm is active • New orders are monitored automatically.</span>
+        </div>
+        {% block admin_content %}{% endblock %}
+    </div>
+
+
+
+    <div id="new-table-booking-alert" class="new-order-alert" hidden>
+        <div class="new-order-alert-card" role="alertdialog" aria-live="assertive">
+            <button id="new-table-booking-alert-close" class="new-order-alert-close" type="button" aria-label="Close">×</button>
+            <div class="new-order-alert-icon">🍽️</div>
+            <div class="new-order-alert-kicker">NEW TABLE BOOKING</div>
+            <h2>Table Booking Received</h2>
+            <div id="new-table-booking-alert-body"></div>
+            <div class="new-order-alert-actions">
+                <a class="btn btn-primary" href="{{ url_for('admin_table_bookings') }}">Review Booking</a>
+                <button id="new-table-booking-alert-dismiss" class="btn btn-ghost" type="button">Close</button>
+            </div>
+        </div>
+    </div>
+    <div id="new-order-alert" class="new-order-alert" hidden>
+        <div class="new-order-alert-card" role="alertdialog" aria-live="assertive">
+            <button id="new-order-alert-close" class="new-order-alert-close" type="button" aria-label="Close">×</button>
+            <div class="new-order-alert-icon">🔔</div>
+            <div class="new-order-alert-kicker">NEW ORDER RECEIVED</div>
+            <h2 id="new-order-alert-title">Order Received</h2>
+            <div id="new-order-alert-body"></div>
+            <div class="new-order-alert-actions">
+                <a id="new-order-alert-review" class="btn btn-primary" href="#">Review Order</a>
+                <button id="new-order-alert-dismiss" class="btn btn-ghost" type="button">Close</button>
+            </div>
+                </div>
+    </div>
+</div>
+{% endblock %}
+
+<style>
+.new-order-alert{position:fixed;inset:0;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;z-index:99999;padding:20px}
+.new-order-alert[hidden]{display:none}
+.new-order-alert-card{position:relative;width:min(480px,94vw);background:#fff;border-radius:18px;padding:28px;box-shadow:0 24px 80px rgba(0,0,0,.35);text-align:center}
+.new-order-alert-icon{font-size:46px;margin-bottom:6px}
+.new-order-alert-kicker{font-size:12px;font-weight:800;letter-spacing:.12em}
+.new-order-alert-card h2{margin:8px 0 12px}
+#new-order-alert-body{line-height:1.7;font-size:16px}
+.new-order-alert-actions{display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap}
+.new-order-alert-close{position:absolute;right:12px;top:8px;border:0;background:transparent;font-size:30px;cursor:pointer}
+.new-order-alert-card.new-order-pulse{animation:newOrderPulse .75s ease-in-out 4}
+@keyframes newOrderPulse{50%{transform:scale(1.025)}}
+</style>
+
+<style>
+.admin-alarm-bar{position:sticky;top:0;z-index:10001;background:#171717;color:#fff;padding:8px 16px;display:flex;align-items:center;border-bottom:1px solid #444}
+#admin-alarm-status{font-size:13px}
+.new-order-alert-card{border:4px solid #c62828}
+.new-order-alert-icon{animation:bellShake .35s infinite alternate}
+@keyframes bellShake{from{transform:rotate(-10deg)}to{transform:rotate(10deg)}}
+</style>

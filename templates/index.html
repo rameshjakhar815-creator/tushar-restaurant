@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}{{ site_settings.restaurant_name }} — Near Mahindra SEZ, Jaipur{% endblock %}
+{% block content %}
+<section class="tushar-hero">
+    {% if hero %}
+        <img class="tushar-hero-image" src="{{ url_for('static', filename=hero.image_path) }}" alt="{{ hero.title or site_settings.restaurant_name }}">
+    {% endif %}
+    <div class="tushar-hero-shade"></div>
+    <div class="tushar-hero-content">
+        <span class="hero-eyebrow">{{ site_settings.restaurant_name }}</span>
+        <h1>Good Food <em>•</em> Great Taste <em>•</em> Happy Place</h1>
+        <p>{{ site_settings.location }} · Delivery available within {{ DELIVERY_RADIUS_KM }} km</p>
+        <div class="hero-ctas">
+            <a href="{{ url_for('menu', type='all') }}" class="btn btn-primary">🍽 Order Now</a>
+            <a href="{{ url_for('menu', type='veg') }}" class="btn btn-ghost">🟢 Veg Menu</a>
+            <a href="{{ url_for('menu', type='nonveg') }}" class="btn btn-ghost">🔴 Non-Veg</a>
+            {% if not current_user %}
+                <a href="{{ url_for('login') }}" class="btn btn-ghost">Login / Register</a>
+            {% else %}
+                <a href="{{ url_for('my_orders') }}" class="btn btn-ghost">Track My Order</a>
+            {% endif %}
+            <a href="{{ url_for('table_booking') }}" class="btn btn-primary">🍽️ Book a Table</a>
+        </div>
+    </div>
+</section>
+
+<section class="section" style="padding-top:18px;">
+    <div class="wrap">
+        <div class="summary-card table-booking-cta">
+            <div>
+                <span class="hero-eyebrow">Reserve Your Table</span>
+                <h2 style="margin:4px 0 6px;">🍽️ Table Booking</h2>
+                <p style="margin:0;">Choose 2, 3, 4, 5 or more guests, select your date and time, and request your table.</p>
+            </div>
+            <a href="{{ url_for('table_booking') }}" class="btn btn-primary">Book Table →</a>
+        </div>
+    </div>
+</section>
+
+<section class="section" style="padding-top:28px;padding-bottom:10px;">
+    <div class="wrap">
+        <div class="section-head">
+            <div>
+                <span class="hero-eyebrow">Order Your Food</span>
+                <h2>Menu is available before login</h2>
+                <p>Browse Veg or Non-Veg dishes first. Login/Register is only needed when you continue to checkout.</p>
+            </div>
+            <a href="{{ url_for('my_orders') if current_user else url_for('login') }}" class="btn btn-ghost btn-sm">{{ "📋 My Order History" if current_user else "🔐 Login to view orders" }}</a>
+        </div>
+    </div>
+</section>
+
+<section class="tushar-trust">
+    <div><strong>⚡ Fast Delivery</strong><span>Within {{ DELIVERY_RADIUS_KM }} km</span></div>
+    <div><strong>🍛 Fresh Kitchen</strong><span>Prepared to order</span></div>
+    <div><strong>📱 UPI / PhonePe</strong><span>No Cash on Delivery</span></div>
+    <div><strong>💬 WhatsApp</strong><span>Order & support</span></div>
+</section>
+
+<section class="section">
+    <div class="wrap">
+        <div class="section-head">
+            <div>
+                <span class="hero-eyebrow">Our Kitchen</span>
+                <h2>Today's favourites</h2>
+                <p>Fresh dishes from {{ site_settings.restaurant_name }}.</p>
+            </div>
+            <a href="{{ url_for('menu') }}" class="btn btn-ghost btn-sm">Full Menu →</a>
+        </div>
+        <div class="dish-grid">
+            {% for item in featured %}
+            <div class="dish-card">
+                <div class="dish-top">
+                    {% if item.image_path %}
+                        <img class="dish-image" src="{{ url_for('static', filename=item.image_path) }}" alt="{{ item.name }}">
+                    {% else %}
+                        <span class="dish-emoji">{{ item.emoji }}</span>
+                    {% endif %}
+                    <span class="veg-dot {{ '' if item.is_veg else 'nonveg' }}" title="{{ 'Veg' if item.is_veg else 'Non-veg' }}"></span>
+                </div>
+                <h3 class="dish-name">{{ item.name }}</h3>
+                <p class="dish-desc">{{ item.description }}</p>
+                <div class="dish-bottom">
+                    <span class="price">₹{{ '%.0f' % item.price }}</span>
+                    <form method="post" action="{{ url_for('cart_add', item_id=item.id) }}">
+                        <button type="submit" class="btn btn-sm btn-primary">Add</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

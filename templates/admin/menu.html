@@ -1,0 +1,39 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Manage Menu — Group of Tushar Restaurant{% endblock %}
+{% block admin_content %}
+<div class="section-head">
+    <h1 style="font-size: 1.8rem; margin-bottom:0;">Menu</h1>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;"><a href="{{ url_for('admin_categories') }}" class="btn btn-ghost btn-sm">🗂 Categories</a><a href="{{ url_for('admin_menu_add') }}" class="btn btn-primary btn-sm">+ Add item</a></div>
+</div>
+
+<table class="data-table">
+    <thead><tr><th></th><th>Name</th><th>Category</th><th>Price</th><th>Veg</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{% if item.image_path %}<img src="{{ url_for('static', filename=item.image_path) }}" alt="{{ item.name }}" style="width:60px;height:45px;object-fit:cover;border-radius:8px;">{% else %}<span style="font-size:1.3rem;">{{ item.emoji }}</span>{% endif %}</td>
+            <td>{{ item.name }}</td>
+            <td>{{ item.category_name }}</td>
+            <td>₹{{ '%.0f' % item.price }}</td>
+            <td><span class="veg-dot {{ '' if item.is_veg else 'nonveg' }}"></span></td>
+            <td>
+                {% if item.is_available %}
+                    <span class="badge badge-confirmed">Live</span>
+                {% else %}
+                    <span class="badge badge-cancelled">Hidden</span>
+                {% endif %}
+            </td>
+            <td style="white-space:nowrap;">
+                <a href="{{ url_for('admin_menu_edit', item_id=item.id) }}" class="btn btn-sm btn-ghost">Edit</a>
+                {% if item.is_available %}
+                <form method="post" action="{{ url_for('admin_menu_delete', item_id=item.id) }}" style="display:inline;"
+                      onsubmit="return confirm('Remove {{ item.name }} from the live menu?');">
+                    <button type="submit" class="btn btn-sm btn-danger">Remove</button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

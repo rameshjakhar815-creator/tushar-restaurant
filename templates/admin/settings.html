@@ -1,0 +1,95 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Restaurant Settings — Admin{% endblock %}
+{% block admin_content %}
+<div class="section-head">
+    <div>
+        <span class="hero-eyebrow">Admin Control</span>
+        <h1 style="font-size:1.8rem;">⚙ Restaurant Settings</h1>
+        <p>Change the name, location, delivery limit, UPI ID and WhatsApp number without editing Python.</p>
+    </div>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="form-card" style="max-width:760px;">
+    <div class="field">
+        <label>Restaurant name</label>
+        <input name="restaurant_name" value="{{ settings.restaurant_name }}" required>
+    </div>
+    <div class="field">
+        <label>Location / address text</label>
+        <input name="location" value="{{ settings.location }}" required>
+    </div>
+    <div class="field">
+        <label>Delivery radius (km)</label>
+        <input name="delivery_radius_km" type="number" min="0.5" max="100" step="0.1" value="{{ settings.delivery_radius_km }}" required>
+        <div class="field-hint">Current rule: delivery within {{ settings.delivery_radius_km }} km.</div>
+    </div>
+    <div class="field">
+        <label>UPI ID for PhonePe / UPI</label>
+        <input name="upi_id" value="{{ settings.upi_id }}" placeholder="example@upi">
+        <div class="field-hint">After you give your real UPI ID, put it here. The customer gets a direct UPI payment button.</div>
+    </div>
+    <div class="field">
+        <label>WhatsApp number</label>
+        <input name="whatsapp_number" value="{{ settings.whatsapp_number }}" placeholder="91XXXXXXXXXX">
+        <div class="field-hint">Use country code, e.g. 9198XXXXXXXX. This enables the WhatsApp order-support link.</div>
+    </div>
+    <div class="field">
+        <label>Restaurant / Hotel phone number</label>
+        <input name="restaurant_phone" value="{{ settings.restaurant_phone }}" placeholder="91XXXXXXXXXX">
+        <div class="field-hint">This number can be shown to customers and included in order messages.</div>
+    </div>
+
+    <div class="field">
+        <label>Restaurant status</label>
+        <select name="restaurant_open">
+            <option value="1" {{ 'selected' if settings.restaurant_open == '1' }}>🟢 OPEN — Accept orders</option>
+            <option value="0" {{ 'selected' if settings.restaurant_open != '1' }}>🔴 CLOSED — Stop new orders</option>
+        </select>
+    </div>
+
+    <div class="field">
+        <label>Cash on Delivery</label>
+        <select name="cod_enabled">
+            <option value="0" {{ 'selected' if settings.cod_enabled != '1' }}>OFF — UPI / PhonePe only</option>
+            <option value="1" {{ 'selected' if settings.cod_enabled == '1' }}>ON — Allow Cash on Delivery</option>
+        </select>
+        <div class="field-hint">Turn this ON when you want delivery customers to see Cash on Delivery.</div>
+    </div>
+
+    <div class="field">
+        <label>UPI QR / Barcode</label>
+        <input name="upi_qr" type="file" accept="image/*">
+        {% if settings.upi_qr_path %}
+            <div style="margin-top:10px;">
+                <img src="{{ url_for('static', filename=settings.upi_qr_path) }}" alt="UPI QR" style="max-width:180px;border-radius:12px;border:1px solid #555;">
+            </div>
+        {% endif %}
+        <div class="field-hint">Upload a new QR whenever you want to change the payment QR.</div>
+    </div>
+
+    <div class="field">
+        <label>Automatic WhatsApp</label>
+        <select name="whatsapp_auto_enabled">
+            <option value="0" {{ 'selected' if settings.whatsapp_auto_enabled != '1' }}>OFF — use WhatsApp link</option>
+            <option value="1" {{ 'selected' if settings.whatsapp_auto_enabled == '1' }}>ON — send through official Cloud API</option>
+        </select>
+        <div class="field-hint">Fully automatic sending requires your official WhatsApp Cloud API credentials below.</div>
+    </div>
+
+    <div class="field">
+        <label>WhatsApp Cloud API Phone Number ID</label>
+        <input name="whatsapp_phone_number_id" value="{{ settings.whatsapp_phone_number_id }}" placeholder="Phone Number ID">
+    </div>
+
+    <div class="field">
+        <label>WhatsApp Cloud API Token</label>
+        <input name="whatsapp_api_token" type="password" value="{{ settings.whatsapp_api_token }}" placeholder="Permanent access token">
+    </div>
+    <button type="submit" class="btn btn-primary">Save Settings</button>
+</form>
+
+<div class="payment-notice" style="max-width:760px;margin-top:20px;">
+    <strong>{{ '💵 Cash on Delivery is enabled' if settings.cod_enabled == '1' else '🚫 Cash on Delivery is disabled' }}</strong>
+    <span>{{ 'Customers can choose UPI / PhonePe or Cash on Delivery.' if settings.cod_enabled == '1' else 'Customers can place delivery orders using UPI / PhonePe.' }}</span>
+</div>
+{% endblock %}

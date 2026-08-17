@@ -1,0 +1,39 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}Orders — Group of Tushar Restaurant{% endblock %}
+{% block admin_content %}
+<div id="admin-orders-root" data-latest-order-id="{{ orders[0].id if orders else 0 }}">
+<div class="section-head">
+    <div><h1 style="font-size: 1.8rem;margin-bottom:0;">Orders</h1><p>Review, print and manage every order.</p></div>
+    <button type="button" class="btn btn-primary" onclick="window.print()">🖨 Print Orders</button>
+</div>
+
+<div class="filter-row">
+    <a href="{{ url_for('admin_orders') }}" class="{{ 'active' if not status_filter }}">All</a>
+    {% for s in statuses %}
+    <a href="{{ url_for('admin_orders', status=s) }}" class="{{ 'active' if status_filter == s }}">{{ STATUS_LABELS[s] }}</a>
+    {% endfor %}
+</div>
+
+{% if orders %}
+<table class="data-table">
+    <thead><tr><th>Order</th><th>Customer</th><th>Placed</th><th>Type</th><th>Total</th><th>Payment</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+        {% for o in orders %}
+        <tr>
+            <td>#{{ o.id }}</td>
+            <td>{{ o.customer_name }}</td>
+            <td>{{ o.created_at }}</td>
+            <td>{{ 'Delivery' if o.order_type == 'delivery' else 'Pickup' }}</td>
+            <td>₹{{ '%.2f' % o.total }}</td>
+            <td><span class="badge {{ 'badge-delivered' if o.payment_status == 'received' else 'badge-pending' }}">{{ PAYMENT_LABELS[o.payment_status] }}</span></td>
+            <td><span class="badge badge-{{ o.status }}">{{ STATUS_LABELS[o.status] }}</span></td>
+            <td><a href="{{ url_for('admin_order_detail', order_id=o.id) }}" class="btn btn-sm btn-ghost">Manage</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No orders match this filter.</p>
+{% endif %}
+</div>
+{% endblock %}

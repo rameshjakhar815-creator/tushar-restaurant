@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Table Booking — Group of Tushar Restaurant{% endblock %}
+{% block content %}
+<div class="wrap" style="padding:48px 24px;max-width:760px;">
+  <span class="hero-eyebrow">Table Booking</span>
+  <h1 style="font-size:2rem;">Reserve Your Table</h1>
+  <p>Choose your party size: 2, 3, 4, 5 or any other number of guests.</p>
+  <form method="post" class="summary-card" style="margin-top:24px;">
+    <div class="field"><label>Name</label><input name="customer_name" required></div>
+    <div class="field"><label>Phone</label><input name="phone" type="tel" required></div>
+    <div class="field"><label>Date</label><input name="booking_date" type="date" required></div>
+    <div class="field"><label>Time</label><input name="booking_time" type="time" required></div>
+    <div class="field"><label>Guests</label>
+      <select name="guests" required>
+        <option value="2">2 Persons</option><option value="3">3 Persons</option>
+        <option value="4">4 Persons</option><option value="5">5 Persons</option>
+        <option value="6">6 Persons</option><option value="8">8 Persons</option>
+        <option value="10">10 Persons</option><option value="12">12 Persons</option>
+        <option value="15">15 Persons</option><option value="20">20 Persons</option>
+        <option value="25">25 Persons</option><option value="30">30 Persons</option>
+        <option value="custom">Other / Custom</option>
+      </select>
+    </div>
+    <div class="field" id="custom-guests-wrap" style="display:none;"><label>Custom number of persons</label><input id="custom-guests" type="number" min="1" max="50" placeholder="e.g. 7"></div>
+    <div class="field"><label>Special request (optional)</label><textarea name="notes" rows="3"></textarea></div>
+    <button class="btn btn-primary btn-block" type="submit">🍽️ Request Table Booking</button>
+  </form>
+</div>
+<script>
+(function(){
+  var form=document.querySelector('form'); var sel=document.querySelector('select[name="guests"]');
+  var wrap=document.getElementById('custom-guests-wrap'); var custom=document.getElementById('custom-guests');
+  function sync(){wrap.style.display=sel.value==='custom'?'block':'none';}
+  sel.addEventListener('change',sync); sync();
+  form.addEventListener('submit',function(){if(sel.value==='custom'){var n=parseInt(custom.value||'0',10); if(n<1||n>50){custom.reportValidity(); event.preventDefault(); return;} sel.value=String(n);}});
+})();
+</script>
+{% endblock %}
