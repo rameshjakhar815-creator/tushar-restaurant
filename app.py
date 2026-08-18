@@ -404,15 +404,15 @@ def home():
     hero = db.execute(
         "SELECT * FROM hero_slides "
         "WHERE ("
-        "      (start_at IS NOT NULL AND start_at != '' "
-        "       AND start_at <= datetime('now','localtime') "
-        "       AND (end_at IS NULL OR end_at = '' OR end_at >= datetime('now','localtime')))"
-        "   OR (is_active = 1 AND (start_at IS NULL OR start_at = '' OR start_at <= datetime('now','localtime')) "
-        "       AND (end_at IS NULL OR end_at = '' OR end_at >= datetime('now','localtime')))"
+        "      (start_at IS NOT NULL "
+        "       AND start_at <= CURRENT_TIMESTAMP "
+        "       AND (end_at IS NULL OR end_at >= CURRENT_TIMESTAMP))"
+        "   OR (is_active = 1 AND (start_at IS NULL OR start_at = '' OR start_at <= CURRENT_TIMESTAMP) "
+        "       AND (end_at IS NULL OR end_at >= CURRENT_TIMESTAMP))"
         ") "
         "ORDER BY "
-        "CASE WHEN start_at IS NOT NULL AND start_at != '' AND start_at <= datetime('now','localtime') THEN 0 ELSE 1 END, "
-        "datetime(COALESCE(start_at, '1970-01-01 00:00:00')) DESC, id DESC LIMIT 1"
+        "CASE WHEN start_at IS NOT NULL AND start_at <= CURRENT_TIMESTAMP THEN 0 ELSE 1 END, "
+        "COALESCE(start_at, TIMESTAMP '1970-01-01 00:00:00') DESC, id DESC LIMIT 1"
     ).fetchone()
     return render_template("index.html", featured=featured, hero=hero)
 
