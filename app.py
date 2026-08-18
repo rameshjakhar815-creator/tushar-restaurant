@@ -390,6 +390,10 @@ def get_cart_details(db):
 # =============================================================================
 # Public / customer routes
 # =============================================================================
+@app.route("/health")
+def health():
+    return {"status":"ok"}, 200
+
 @app.route("/")
 def home():
     db = get_db()
