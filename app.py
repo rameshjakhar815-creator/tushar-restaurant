@@ -407,7 +407,7 @@ def home():
         "      (start_at IS NOT NULL "
         "       AND start_at <= CURRENT_TIMESTAMP "
         "       AND (end_at IS NULL OR end_at >= CURRENT_TIMESTAMP))"
-        "   OR (is_active = 1 AND (start_at IS NULL OR start_at = '' OR start_at <= CURRENT_TIMESTAMP) "
+        "   OR (is_active = 1 AND (start_at IS NULL OR start_at <= CURRENT_TIMESTAMP) "
         "       AND (end_at IS NULL OR end_at >= CURRENT_TIMESTAMP))"
         ") "
         "ORDER BY "
