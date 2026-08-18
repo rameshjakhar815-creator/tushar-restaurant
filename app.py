@@ -11,7 +11,8 @@ First run auto-creates tusar_restaurant.db (SQLite) with sample menu data
 and one admin account:
 """
 import os
-import sqlite3
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from datetime import datetime
 from functools import wraps
 
@@ -163,11 +164,73 @@ def send_whatsapp_cloud_text(number, message, settings):
 
 
 # ------------------------------------------------------------------ database
+class PGDatabase:
+    def __init__(self, url):
+        self.conn = psycopg2.connect(url)
+        self.conn.autocommit = False
+
+    def execute(self, sql, params=()):
+        # Convert SQLite ? placeholders to PostgreSQL %s.
+        sql = sql.replace("?", "%s")
+
+        # PostgreSQL does not support SQLite's INSERT OR IGNORE.
+        sql = sql.replace("INSERT OR IGNORE INTO", "INSERT INTO")
+
+        cur = self.conn.cursor(cursor_factory=RealDictCursor)
+
+        # PostgreSQL needs RETURNING id for code that uses lastrowid.
+        stripped = sql.strip().upper()
+        if stripped.startswith("INSERT") and " RETURNING " not in stripped and "SITE_SETTINGS" not in stripped:
+            sql = sql.rstrip().rstrip(";") + " RETURNING id"
+
+        cur.execute(sql, params)
+
+        return PGCursor(cur, self.conn)
+
+    def commit(self):
+        self.conn.commit()
+
+    def rollback(self):
+        self.conn.rollback()
+
+    def close(self):
+        self.conn.close()
+
+
+class PGCursor:
+    def __init__(self, cursor, conn):
+        self.cursor = cursor
+        self.conn = conn
+        self._lastrowid = None
+
+        try:
+            if cursor.description:
+                row = cursor.fetchone()
+                if row and "id" in row:
+                    self._lastrowid = row["id"]
+        except Exception:
+            self._lastrowid = None
+
+    @property
+    def lastrowid(self):
+        return self._lastrowid
+
+    def fetchone(self):
+        return self.cursor.fetchone()
+
+    def fetchall(self):
+        return self.cursor.fetchall()
+
+    def __iter__(self):
+        return iter(self.cursor.fetchall())
+
+
 def get_db():
     if "db" not in g:
-        g.db = sqlite3.connect(DB_PATH)
-        g.db.row_factory = sqlite3.Row
-        g.db.execute("PRAGMA foreign_keys = ON")
+        database_url = os.environ.get("DATABASE_URL")
+        if not database_url:
+            raise RuntimeError("DATABASE_URL is not configured")
+        g.db = PGDatabase(database_url)
     return g.db
 
 
@@ -179,84 +242,22 @@ def close_db(exception=None):
 
 
 def init_db():
-    fresh = not os.path.exists(DB_PATH)
-    db = sqlite3.connect(DB_PATH)
-    db.row_factory = sqlite3.Row
-    with open(SCHEMA_PATH, encoding="utf-8") as f:
-        db.executescript(f.read())
-    # Add image_path to older databases without requiring data loss.
-    columns = {row[1] for row in db.execute("PRAGMA table_info(menu_items)").fetchall()}
-    if "image_path" not in columns:
-        db.execute("ALTER TABLE menu_items ADD COLUMN image_path TEXT")
-        db.commit()
-    order_columns = {row[1] for row in db.execute("PRAGMA table_info(orders)").fetchall()}
-    if "payment_status" not in order_columns:
-        db.execute("ALTER TABLE orders ADD COLUMN payment_status TEXT NOT NULL DEFAULT 'pending'")
-        db.commit()
-    db.execute("""
-        CREATE TABLE IF NOT EXISTS hero_slides (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            image_path TEXT NOT NULL,
-            title TEXT DEFAULT '',
-            subtitle TEXT DEFAULT '',
-            start_at TEXT,
-            end_at TEXT,
-            is_active INTEGER NOT NULL DEFAULT 0,
-            created_at TEXT NOT NULL DEFAULT (datetime('now'))
-        )
-    """)
-    db.execute("""
-        CREATE TABLE IF NOT EXISTS site_settings (
-            key TEXT PRIMARY KEY,
-            value TEXT NOT NULL DEFAULT ''
-        )
-    """)
-    for key, value in DEFAULT_SETTINGS.items():
-        db.execute("INSERT OR IGNORE INTO site_settings (key, value) VALUES (?,?)", (key, value))
-    db.execute("""
-        CREATE TABLE IF NOT EXISTS table_bookings (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER,
-            customer_name TEXT NOT NULL,
-            phone TEXT NOT NULL,
-            booking_date TEXT NOT NULL,
-            booking_time TEXT NOT NULL,
-            guests INTEGER NOT NULL,
-            notes TEXT NOT NULL DEFAULT '',
-            status TEXT NOT NULL DEFAULT 'pending',
-            created_at TEXT NOT NULL DEFAULT (datetime('now')),
-            FOREIGN KEY (user_id) REFERENCES users(id)
-        )
-    """)
-    # Upgrade older databases created before customer-linked table bookings.
-    booking_columns = {row[1] for row in db.execute("PRAGMA table_info(table_bookings)").fetchall()}
-    if "user_id" not in booking_columns:
-        db.execute("ALTER TABLE table_bookings ADD COLUMN user_id INTEGER")
-    # Recover older bookings when their phone matches a registered customer.
-    db.execute("""
-        UPDATE table_bookings
-        SET user_id = (SELECT id FROM users WHERE users.phone = table_bookings.phone LIMIT 1)
-        WHERE user_id IS NULL AND phone IS NOT NULL AND phone != ''
-    """)
-    db.commit()
-    if fresh:
-        seed_db(db)
+    db = get_db()
 
-    # Keep the supplied Group of Tushar front image as the initial live hero.
-    # If an existing database already has a hero, nothing is overwritten.
-    hero_count = db.execute("SELECT COUNT(*) AS c FROM hero_slides").fetchone()["c"]
-    supplied_front = os.path.join(BASE_DIR, "static", "uploads", "tushar_front.png")
-    if hero_count == 0 and os.path.isfile(supplied_front):
+    # PostgreSQL database was populated from the protected SQLite backup.
+    # Keep this initialization lightweight and non-destructive.
+
+    for key, value in DEFAULT_SETTINGS.items():
         db.execute(
-            "INSERT INTO hero_slides (image_path, title, subtitle, is_active) VALUES (?,?,?,1)",
-            (
-                "uploads/tushar_front.png",
-                "Group of Tushar Restaurant",
-                "Near Mahindra SEZ, Jaipur • Delivery within 4 km",
-            ),
+            """
+            INSERT INTO site_settings (key, value)
+            VALUES (?, ?)
+            ON CONFLICT (key) DO NOTHING
+            """,
+            (key, value),
         )
+
     db.commit()
-    db.close()
 
 
 def allowed_image(filename):
@@ -1013,7 +1014,7 @@ def admin_categories():
                 db.execute("INSERT INTO categories (name, sort_order) VALUES (?, ?)", (name, 0))
                 db.commit()
                 flash(f"Category '{name}' added.", "success")
-            except sqlite3.IntegrityError:
+            except psycopg2.IntegrityError:
                 db.rollback()
                 flash("That category already exists.", "error")
         return redirect(url_for("admin_categories"))
@@ -1219,8 +1220,10 @@ def admin_order_status(order_id):
 
 
 if __name__ == "__main__":
-    init_db()
+    with app.app_context():
+        init_db()
     app.run(debug=True, host="0.0.0.0", port=5000)
 else:
     # also init when imported (e.g. by a WSGI server or test harness)
-    init_db()
+    with app.app_context():
+        init_db()

@@ -2,3 +2,8 @@ __pycache__/
 *.pyc
 *.db
 *.db
+app_POSTGRES_CONVERSION_BACKUP.py
+app_SQLITE_BACKUP.py
+app_SQLITE_BEFORE_POSTGRES.py
+convert_to_postgres.py
+migrate_sqlite_to_postgres.py
