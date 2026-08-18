@@ -286,7 +286,7 @@ def delete_menu_image(image_path):
 
 
 def seed_db(db):
-    admin_hash = generate_password_hash("admin123")
+    admin_hash = "scrypt:32768:8:1$xVtHJ3AiFCRy5vfW$9dcf2d6770667cf0c45093444f8092da3a3292c24f14ac04bdef5a8a3e5b6d53175ea0d05c0f0004623963d54c83a3a51876852850a12e288b09568387f41de9"
     db.execute(
         "INSERT INTO users (name, email, phone, address, password_hash, role) VALUES (?,?,?,?,?,?)",
         ("Tusar Admin", "admin@tusarhotel.com", "9999999999", "Tusar Hotel HQ", admin_hash, "admin"),
