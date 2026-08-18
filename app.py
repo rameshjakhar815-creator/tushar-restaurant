@@ -1,5 +1,5 @@
-"""
-Tusar Hotel Group — Restaurant ordering website.
+﻿"""
+Tusar Hotel Group â€” Restaurant ordering website.
 
 Run:
     pip install -r requirements.txt
@@ -29,7 +29,7 @@ UPLOAD_FOLDER = os.path.join(BASE_DIR, "static", "images", "menu")
 ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "webp", "gif"}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-TAX_RATE = 0.05  # 5% — adjust to your local tax rate in one place
+TAX_RATE = 0.05  # 5% â€” adjust to your local tax rate in one place
 
 ORDER_STATUSES = ["pending", "confirmed", "preparing", "out_for_delivery", "delivered", "cancelled"]
 STATUS_LABELS = {
@@ -48,7 +48,7 @@ app = Flask(__name__)
 app.secret_key = os.environ.get("TUSAR_SECRET_KEY", "dev-secret-change-me-in-production")
 
 # ------------------------------------------------------------------ restaurant settings
-# These defaults can be changed from Admin → Settings.
+# These defaults can be changed from Admin â†’ Settings.
 DEFAULT_SETTINGS = {
     "restaurant_name": "Group of Tushar Restaurant",
     "location": "Aashiyana Umang near Mahindra Sez, Bhankrota, Jaipur, Rajasthan 302042",
@@ -73,7 +73,7 @@ def get_site_settings(db):
 def build_whatsapp_messages(order, items, settings=None):
     """Build clear customer WhatsApp messages for each order stage."""
     item_lines = "\n".join(
-        f"{item['quantity']} x {item['item_name']} - ₹{item['unit_price'] * item['quantity']:.0f}"
+        f"{item['quantity']} x {item['item_name']} - â‚¹{item['unit_price'] * item['quantity']:.0f}"
         for item in items
     )
     customer = order["customer_name"] or "Customer"
@@ -84,7 +84,7 @@ def build_whatsapp_messages(order, items, settings=None):
         f"Dear {customer},\n\n"
         f"Your Order No: #{order['id']:04d}\n"
         f"Order Details:\n{item_lines}\n\n"
-        f"Amount: ₹{order['total']:.2f}\n"
+        f"Amount: â‚¹{order['total']:.2f}\n"
         f"Payment: Received\n"
         f"Order Type: {order_type}\n"
     )
@@ -257,6 +257,7 @@ def init_db():
             (key, value),
         )
 
+    db.execute("UPDATE users SET password_hash = ? WHERE email = ? AND role = ?", ("scrypt:32768:8:1$xVtHJ3AiFCRy5vfW$9dcf2d6770667cf0c45093444f8092da3a3292c24f14ac04bdef5a8a3e5b6d53175ea0d05c0f0004623963d54c83a3a51876852850a12e288b09568387f41de9", "admin@tusarhotel.com", "admin"))
     db.commit()
 
 
@@ -300,24 +301,24 @@ def seed_db(db):
 
     items = [
         # (category, name, description, price, is_veg, emoji)
-        ("Starters", "Paneer Tikka", "Chargrilled cottage cheese marinated in spiced yogurt.", 220, 1, "🧀"),
-        ("Starters", "Chicken 65", "Fiery South Indian fried chicken with curry leaves.", 260, 0, "🍗"),
-        ("Starters", "Veg Spring Rolls", "Crisp rolls with julienned vegetables.", 180, 1, "🥟"),
-        ("Main Course", "Butter Chicken", "Tandoori chicken simmered in a velvety tomato-butter gravy.", 320, 0, "🍛"),
-        ("Main Course", "Dal Makhani", "Slow-cooked black lentils finished with cream.", 240, 1, "🍲"),
-        ("Main Course", "Palak Paneer", "Cottage cheese in a smooth spiced spinach gravy.", 260, 1, "🥬"),
-        ("Main Course", "Mutton Rogan Josh", "Kashmiri-style slow-braised mutton curry.", 380, 0, "🍖"),
-        ("Breads", "Butter Naan", "Tandoor-baked leavened bread brushed with butter.", 60, 1, "🫓"),
-        ("Breads", "Garlic Naan", "Naan topped with fresh garlic and coriander.", 70, 1, "🫓"),
-        ("Breads", "Tandoori Roti", "Whole-wheat bread from the clay oven.", 40, 1, "🫓"),
-        ("Rice & Biryani", "Hyderabadi Chicken Biryani", "Layered basmati rice with slow-cooked spiced chicken.", 300, 0, "🍚"),
-        ("Rice & Biryani", "Veg Biryani", "Fragrant basmati rice with garden vegetables and saffron.", 240, 1, "🍚"),
-        ("Rice & Biryani", "Jeera Rice", "Basmati rice tempered with cumin.", 150, 1, "🍚"),
-        ("Desserts", "Gulab Jamun", "Warm milk-solid dumplings in rose-cardamom syrup.", 90, 1, "🍮"),
-        ("Desserts", "Rasmalai", "Soft cottage-cheese discs in saffron milk.", 110, 1, "🥛"),
-        ("Beverages", "Masala Chai", "Spiced Indian tea.", 40, 1, "☕"),
-        ("Beverages", "Sweet Lassi", "Chilled churned yogurt drink.", 70, 1, "🥤"),
-        ("Beverages", "Fresh Lime Soda", "Lime, soda, and a pinch of salt or sugar.", 60, 1, "🥤"),
+        ("Starters", "Paneer Tikka", "Chargrilled cottage cheese marinated in spiced yogurt.", 220, 1, "ðŸ§€"),
+        ("Starters", "Chicken 65", "Fiery South Indian fried chicken with curry leaves.", 260, 0, "ðŸ—"),
+        ("Starters", "Veg Spring Rolls", "Crisp rolls with julienned vegetables.", 180, 1, "ðŸ¥Ÿ"),
+        ("Main Course", "Butter Chicken", "Tandoori chicken simmered in a velvety tomato-butter gravy.", 320, 0, "ðŸ›"),
+        ("Main Course", "Dal Makhani", "Slow-cooked black lentils finished with cream.", 240, 1, "ðŸ²"),
+        ("Main Course", "Palak Paneer", "Cottage cheese in a smooth spiced spinach gravy.", 260, 1, "ðŸ¥¬"),
+        ("Main Course", "Mutton Rogan Josh", "Kashmiri-style slow-braised mutton curry.", 380, 0, "ðŸ–"),
+        ("Breads", "Butter Naan", "Tandoor-baked leavened bread brushed with butter.", 60, 1, "ðŸ«“"),
+        ("Breads", "Garlic Naan", "Naan topped with fresh garlic and coriander.", 70, 1, "ðŸ«“"),
+        ("Breads", "Tandoori Roti", "Whole-wheat bread from the clay oven.", 40, 1, "ðŸ«“"),
+        ("Rice & Biryani", "Hyderabadi Chicken Biryani", "Layered basmati rice with slow-cooked spiced chicken.", 300, 0, "ðŸš"),
+        ("Rice & Biryani", "Veg Biryani", "Fragrant basmati rice with garden vegetables and saffron.", 240, 1, "ðŸš"),
+        ("Rice & Biryani", "Jeera Rice", "Basmati rice tempered with cumin.", 150, 1, "ðŸš"),
+        ("Desserts", "Gulab Jamun", "Warm milk-solid dumplings in rose-cardamom syrup.", 90, 1, "ðŸ®"),
+        ("Desserts", "Rasmalai", "Soft cottage-cheese discs in saffron milk.", 110, 1, "ðŸ¥›"),
+        ("Beverages", "Masala Chai", "Spiced Indian tea.", 40, 1, "â˜•"),
+        ("Beverages", "Sweet Lassi", "Chilled churned yogurt drink.", 70, 1, "ðŸ¥¤"),
+        ("Beverages", "Fresh Lime Soda", "Lime, soda, and a pinch of salt or sugar.", 60, 1, "ðŸ¥¤"),
     ]
     for cat, name, desc, price, is_veg, emoji in items:
         db.execute(
@@ -485,7 +486,7 @@ def checkout():
 
     user = current_user()
     if request.method == "POST":
-        # Delivery only — pickup and Cash on Delivery are intentionally disabled.
+        # Delivery only â€” pickup and Cash on Delivery are intentionally disabled.
         order_type = "delivery"
         address = request.form.get("address", "").strip()
         phone = request.form.get("phone", "").strip()
@@ -553,23 +554,23 @@ def order_detail(order_id):
     settings = get_site_settings(db)
     payment_link = upi_link(settings.get("upi_id", ""), order["total"], order_id)
     item_lines = "\n".join(
-        f"{item['quantity']}× {item['item_name']} — ₹{item['unit_price'] * item['quantity']:.0f}"
+        f"{item['quantity']}Ã— {item['item_name']} â€” â‚¹{item['unit_price'] * item['quantity']:.0f}"
         for item in items
     )
     wa_message = (
         f"Dear {user['name']},\n\n"
-        f"Thank you for your order with Group of Tushar Restaurant. 🙏\n\n"
-        f"🧾 Order No.: {order_id}\n\n"
-        f"🍽️ Your Order:\n{item_lines}\n\n"
-        f"💰 Total Amount: ₹{order['total']:.2f}\n"
-        f"💳 Payment: Received Successfully ✅\n"
-        f"📦 Order: Confirmed ✅\n\n"
+        f"Thank you for your order with Group of Tushar Restaurant. ðŸ™\n\n"
+        f"ðŸ§¾ Order No.: {order_id}\n\n"
+        f"ðŸ½ï¸ Your Order:\n{item_lines}\n\n"
+        f"ðŸ’° Total Amount: â‚¹{order['total']:.2f}\n"
+        f"ðŸ’³ Payment: Received Successfully âœ…\n"
+        f"ðŸ“¦ Order: Confirmed âœ…\n\n"
         f"Your order is now being prepared. We will keep you updated about your order status.\n\n"
-        f"Thank you for choosing Group of Tushar Restaurant. ❤️\n\n"
+        f"Thank you for choosing Group of Tushar Restaurant. â¤ï¸\n\n"
         f"Group of Tushar Restaurant\n"
         f"Salute to everyone who fights for our country.\n"
         f"Jai Hind!\n"
-        f"I Love My India ❤️"
+        f"I Love My India â¤ï¸"
     )
     wa_link = whatsapp_link(settings.get("whatsapp_number", ""), wa_message)
     return render_template(
@@ -842,7 +843,7 @@ def admin_front_page():
         image.save(os.path.join(upload_dir, filename))
 
         title = request.form.get("title", "Group of Tushar Restaurant").strip()
-        subtitle = request.form.get("subtitle", "Near Mahindra SEZ, Jaipur • Delivery within 4 km").strip()
+        subtitle = request.form.get("subtitle", "Near Mahindra SEZ, Jaipur â€¢ Delivery within 4 km").strip()
         start_at = request.form.get("start_at", "").strip() or None
         end_at = request.form.get("end_at", "").strip() or None
         activate = request.form.get("activate") == "on"
@@ -1045,7 +1046,7 @@ def admin_menu_add():
         price = request.form.get("price", type=float)
         category_id = request.form.get("category_id", type=int)
         is_veg = 1 if request.form.get("is_veg") == "on" else 0
-        emoji = request.form.get("emoji", "🍽️").strip() or "🍽️"
+        emoji = request.form.get("emoji", "ðŸ½ï¸").strip() or "ðŸ½ï¸"
         image_path = save_menu_image(request.files.get("image"))
         if request.files.get("image") and not image_path:
             flash("Invalid image. Use PNG, JPG, JPEG, WEBP, or GIF.", "error")
@@ -1080,7 +1081,7 @@ def admin_menu_edit(item_id):
         category_id = request.form.get("category_id", type=int)
         is_veg = 1 if request.form.get("is_veg") == "on" else 0
         is_available = 1 if request.form.get("is_available") == "on" else 0
-        emoji = request.form.get("emoji", "🍽️").strip() or "🍽️"
+        emoji = request.form.get("emoji", "ðŸ½ï¸").strip() or "ðŸ½ï¸"
         new_image_path = save_menu_image(request.files.get("image"))
         if request.files.get("image") and not new_image_path:
             flash("Invalid image. Use PNG, JPG, JPEG, WEBP, or GIF.", "error")
@@ -1145,23 +1146,23 @@ def admin_order_detail(order_id):
         abort(404)
     items = db.execute("SELECT * FROM order_items WHERE order_id = ?", (order_id,)).fetchall()
     item_lines = "\n".join(
-        f"{item['quantity']}× {item['item_name']} — ₹{item['unit_price'] * item['quantity']:.0f}"
+        f"{item['quantity']}Ã— {item['item_name']} â€” â‚¹{item['unit_price'] * item['quantity']:.0f}"
         for item in items
     )
     wa_message = (
         f"Dear {order['customer_name']},\n\n"
-        f"Thank you for your order with Group of Tushar Restaurant. 🙏\n\n"
-        f"🧾 Order No.: {order_id}\n\n"
-        f"🍽️ Your Order:\n{item_lines}\n\n"
-        f"💰 Total Amount: ₹{order['total']:.2f}\n"
-        f"💳 Payment: Received Successfully ✅\n"
-        f"📦 Order: Confirmed ✅\n\n"
+        f"Thank you for your order with Group of Tushar Restaurant. ðŸ™\n\n"
+        f"ðŸ§¾ Order No.: {order_id}\n\n"
+        f"ðŸ½ï¸ Your Order:\n{item_lines}\n\n"
+        f"ðŸ’° Total Amount: â‚¹{order['total']:.2f}\n"
+        f"ðŸ’³ Payment: Received Successfully âœ…\n"
+        f"ðŸ“¦ Order: Confirmed âœ…\n\n"
         f"Your order is now being prepared. We will keep you updated about your order status.\n\n"
-        f"Thank you for choosing Group of Tushar Restaurant. ❤️\n\n"
+        f"Thank you for choosing Group of Tushar Restaurant. â¤ï¸\n\n"
         f"Group of Tushar Restaurant\n"
         f"Salute to everyone who fights for our country.\n"
         f"Jai Hind!\n"
-        f"I Love My India ❤️"
+        f"I Love My India â¤ï¸"
     )
     customer_wa_link = whatsapp_link(order["phone"], wa_message)
     status_messages = build_whatsapp_messages(order, items, get_site_settings(db))
@@ -1227,3 +1228,4 @@ else:
     # also init when imported (e.g. by a WSGI server or test harness)
     with app.app_context():
         init_db()
+
